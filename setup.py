@@ -41,7 +41,7 @@ setup(
 
     keywords=[],
 
-    packages=['faat.restapi'],
+    packages=['faat.restclient'],
 
     install_requires=['requests'],
 )
