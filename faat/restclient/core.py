@@ -16,14 +16,14 @@ class RestClient:
     def __getitem__(self, key):
         return ItemProxy(self, [self._base_url, key])
 
-    def get(self, params=None):
-        return self._client._get([], params=params)
+    def get(self, **kwargs):
+        return self._client._get([], params=kwargs)
 
-    def post(self, data, params=None):
-        return self._client._post([], data=data, params=params)
+    def post(self, data, **kwargs):
+        return self._client._post([], data=data, params=kwargs)
 
-    def put(self, data, params=None):
-        return self._client._put([], data=data, params=params)
+    def put(self, data, **kwargs):
+        return self._client._put([], data=data, params=kwargs)
 
     def _get(self, parts, params=None):
         url = translate_url(parts, self._translations)
@@ -50,7 +50,7 @@ def translate_url(parts, translations):
             return ''
         return ''.join(translations.get(c, c) for c in word)
 
-    return '/'.join(translate(p) for p in parts)
+    return '/'.join(translate(str(p)) for p in parts)
 
 
 class ItemProxy:
@@ -58,14 +58,14 @@ class ItemProxy:
         self._client = client
         self._parts = parts
 
-    def get(self, params=None):
-        return self._client._get(self._parts, params=params)
+    def get(self, **kwargs):
+        return self._client._get(self._parts, params=kwargs)
 
-    def post(self, data, params=None):
-        return self._client._post(self._parts, data=data, params=params)
+    def post(self, data, **kwargs):
+        return self._client._post(self._parts, data=data, params=kwargs)
 
-    def put(self, data, params=None):
-        return self._client._put(self._parts, data=data, params=params)
+    def put(self, data, **kwargs):
+        return self._client._put(self._parts, data=data, params=kwargs)
 
     def __getattr__(self, key):
         return ItemProxy(self._client, self._parts + [key])
