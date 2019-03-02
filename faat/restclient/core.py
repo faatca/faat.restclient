@@ -19,10 +19,12 @@ class RestClient:
     def get(self, **kwargs):
         return self._client._get([], params=kwargs)
 
-    def post(self, data, **kwargs):
+    def post(self, *args, **kwargs):
+        data = args[0] if len(args) == 1 else args
         return self._client._post([], data=data, params=kwargs)
 
-    def put(self, data, **kwargs):
+    def put(self, *args, **kwargs):
+        data = args[0] if len(args) == 1 else args
         return self._client._put([], data=data, params=kwargs)
 
     def _get(self, parts, params=None):
@@ -61,10 +63,12 @@ class ItemProxy:
     def get(self, **kwargs):
         return self._client._get(self._parts, params=kwargs)
 
-    def post(self, data, **kwargs):
+    def post(self, *args, **kwargs):
+        data = args[0] if len(args) == 1 else args
         return self._client._post(self._parts, data=data, params=kwargs)
 
-    def put(self, data, **kwargs):
+    def put(self, *args, **kwargs):
+        data = args[0] if len(args) == 1 else args
         return self._client._put(self._parts, data=data, params=kwargs)
 
     def __getattr__(self, key):
