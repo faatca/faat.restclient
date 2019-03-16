@@ -7,8 +7,8 @@ class RestClient:
     def __init__(self, base_url, headers=None):
         self._session = create_session()
         self._headers = headers
-        self._base_url = base_url.rstrip('/')
-        self._translations = {'_': '-'}
+        self._base_url = base_url.rstrip("/")
+        self._translations = {"_": "-"}
 
     def __getattr__(self, key):
         return ItemProxy(self, [self._base_url, key])
@@ -17,15 +17,15 @@ class RestClient:
         return ItemProxy(self, [self._base_url, key])
 
     def get(self, **kwargs):
-        return self._client._get([], params=kwargs)
+        return self._get([self._base_url, ""], params=kwargs)
 
     def post(self, *args, **kwargs):
         data = args[0] if len(args) == 1 else args
-        return self._client._post([], data=data, params=kwargs)
+        return self._post([self._base_url, ""], data=data, params=kwargs)
 
     def put(self, *args, **kwargs):
         data = args[0] if len(args) == 1 else args
-        return self._client._put([], data=data, params=kwargs)
+        return self._put([self._base_url, ""], data=data, params=kwargs)
 
     def _get(self, parts, params=None):
         url = translate_url(parts, self._translations)
@@ -48,11 +48,11 @@ class RestClient:
 
 def translate_url(parts, translations):
     def translate(word):
-        if word == '/':
-            return ''
-        return ''.join(translations.get(c, c) for c in word)
+        if word == "/":
+            return ""
+        return "".join(translations.get(c, c) for c in word)
 
-    return '/'.join(translate(str(p)) for p in parts)
+    return "/".join(translate(str(p)) for p in parts)
 
 
 class ItemProxy:
@@ -82,6 +82,6 @@ def create_session():
     session = requests.Session()
     retry = Retry(total=3, read=3, connect=3, backoff_factor=0.3, status_forcelist=(500, 502, 504))
     adapter = HTTPAdapter(max_retries=retry)
-    session.mount('http://', adapter)
-    session.mount('https://', adapter)
+    session.mount("http://", adapter)
+    session.mount("https://", adapter)
     return session
