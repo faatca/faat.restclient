@@ -50,5 +50,11 @@ api = RestClient(
 )
 ```
 
-By default, resource names are hyphenated when converting attribute names to a path.
+Many APIs prefer hyphens to underscores in their resource names.
+By default, the RestClient replaces python underscores in attribute names when converting attribute names to a path.
 For example, the identifer `api.active_connections["test_name"].get()` maps to the url path `/active-connections/test_name`.
+Disable this behaviour with the hyphenate argument when this doesn't make sense.
+
+```python
+api = RestClient(url, hyphenate=False)
+```
