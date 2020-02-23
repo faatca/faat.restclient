@@ -1,17 +1,29 @@
+import base64
 import requests
 from requests.adapters import HTTPAdapter
 from requests.packages.urllib3.util.retry import Retry
 
 
 class RestClient:
-    def __init__(self, base_url, headers=None):
+    def __init__(self, base_url, *, hyphenate=True, headers=None, bearer=None, auth=None):
+        if headers is None:
+            headers = {}
+
+        if auth:
+            username, password = auth
+            headers["AUTHORIZATION"] = format_basic_auth(username, password)
+
+        if bearer:
+            headers["AUTHORIZATION"] = "Bearer " + bearer
+
         self._session = create_session()
         self._headers = headers
         self._base_url = base_url.rstrip("/")
-        self._translations = {"_": "-"}
+        self._hyphenate = hyphenate
 
     def __getattr__(self, key):
-        return ItemProxy(self, [self._base_url, key])
+        name = key.replace('_', '-') if self._hyphenate else key
+        return ItemProxy(self, [self._base_url, name])
 
     def __getitem__(self, key):
         return ItemProxy(self, [self._base_url, key])
@@ -28,31 +40,22 @@ class RestClient:
         return self._put([self._base_url, ""], data=data, params=kwargs)
 
     def _get(self, parts, params=None):
-        url = translate_url(parts, self._translations)
+        url = _create_url(parts)
         r = self._session.get(url, params=params, headers=self._headers)
         r.raise_for_status()
         return r.json()
 
     def _post(self, parts, data, params=None):
-        url = translate_url(parts, self._translations)
+        url = _create_url(parts)
         r = self._session.post(url, json=data, params=params, headers=self._headers)
         r.raise_for_status()
         return r.json()
 
     def _put(self, parts, data, params=None):
-        url = translate_url(parts, self._translations)
+        url = _create_url(parts)
         r = self._session.put(url, json=data, params=params, headers=self._headers)
         r.raise_for_status()
         return r.json()
-
-
-def translate_url(parts, translations):
-    def translate(word):
-        if word == "/":
-            return ""
-        return "".join(translations.get(c, c) for c in word)
-
-    return "/".join(translate(str(p)) for p in parts)
 
 
 class ItemProxy:
@@ -72,7 +75,8 @@ class ItemProxy:
         return self._client._put(self._parts, data=data, params=kwargs)
 
     def __getattr__(self, key):
-        return ItemProxy(self._client, self._parts + [key])
+        name = key.replace("_", "-") if self._client._hyphenate else key
+        return ItemProxy(self._client, self._parts + [name])
 
     def __getitem__(self, key):
         return ItemProxy(self._client, self._parts + [key])
@@ -85,3 +89,12 @@ def create_session():
     session.mount("http://", adapter)
     session.mount("https://", adapter)
     return session
+
+
+def format_basic_auth(username, password):
+    credentials = base64.b64encode(f"{username}:{password}".encode("utf-8")).decode("ascii")
+    return "Basic " + credentials
+
+
+def _create_url(parts):
+    return "/".join(str(p) for p in parts)
