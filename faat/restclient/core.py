@@ -39,6 +39,10 @@ class RestClient:
         data = args[0] if len(args) == 1 else args
         return self._put([self._base_url, ""], data=data, params=kwargs)
 
+    def patch(self, *args, **kwargs):
+        data = args[0] if len(args) == 1 else args
+        return self._patch([self._base_url, ""], data=data, params=kwargs)
+
     def _get(self, parts, params=None):
         url = _create_url(parts)
         r = self._session.get(url, params=params, headers=self._headers)
@@ -54,6 +58,12 @@ class RestClient:
     def _put(self, parts, data, params=None):
         url = _create_url(parts)
         r = self._session.put(url, json=data, params=params, headers=self._headers)
+        r.raise_for_status()
+        return r.json()
+
+    def _patch(self, parts, data, params=None):
+        url = _create_url(parts)
+        r = self._session.patch(url, json=data, params=params, headers=self._headers)
         r.raise_for_status()
         return r.json()
 
@@ -73,6 +83,10 @@ class ItemProxy:
     def put(self, *args, **kwargs):
         data = args[0] if len(args) == 1 else args
         return self._client._put(self._parts, data=data, params=kwargs)
+
+    def patch(self, *args, **kwargs):
+        data = args[0] if len(args) == 1 else args
+        return self._client._patch(self._parts, data=data, params=kwargs)
 
     def __getattr__(self, key):
         name = key.replace("_", "-") if self._client._hyphenate else key
