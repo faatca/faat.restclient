@@ -5,7 +5,16 @@ from requests.packages.urllib3.util.retry import Retry
 
 
 class RestClient:
-    def __init__(self, base_url, *, hyphenate=True, headers=None, bearer=None, auth=None):
+    def __init__(
+        self,
+        base_url,
+        *,
+        hyphenate=True,
+        headers=None,
+        bearer=None,
+        auth=None,
+        verify=True,
+    ):
         if headers is None:
             headers = {}
 
@@ -20,9 +29,10 @@ class RestClient:
         self._headers = headers
         self._base_url = base_url.rstrip("/")
         self._hyphenate = hyphenate
+        self._verify = verify
 
     def __getattr__(self, key):
-        name = key.replace('_', '-') if self._hyphenate else key
+        name = key.replace("_", "-") if self._hyphenate else key
         return ItemProxy(self, [self._base_url, name])
 
     def __getitem__(self, key):
@@ -45,25 +55,31 @@ class RestClient:
 
     def _get(self, parts, params=None):
         url = _create_url(parts)
-        r = self._session.get(url, params=params, headers=self._headers)
+        r = self._session.get(url, params=params, headers=self._headers, verify=self._verify)
         r.raise_for_status()
         return r.json()
 
     def _post(self, parts, data, params=None):
         url = _create_url(parts)
-        r = self._session.post(url, json=data, params=params, headers=self._headers)
+        r = self._session.post(
+            url, json=data, params=params, headers=self._headers, verify=self._verify
+        )
         r.raise_for_status()
         return r.json()
 
     def _put(self, parts, data, params=None):
         url = _create_url(parts)
-        r = self._session.put(url, json=data, params=params, headers=self._headers)
+        r = self._session.put(
+            url, json=data, params=params, headers=self._headers, verify=self._verify
+        )
         r.raise_for_status()
         return r.json()
 
     def _patch(self, parts, data, params=None):
         url = _create_url(parts)
-        r = self._session.patch(url, json=data, params=params, headers=self._headers)
+        r = self._session.patch(
+            url, json=data, params=params, headers=self._headers, verify=self._verify
+        )
         r.raise_for_status()
         return r.json()
 
